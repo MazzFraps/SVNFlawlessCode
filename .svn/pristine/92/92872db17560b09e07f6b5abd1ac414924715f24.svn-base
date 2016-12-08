@@ -1,0 +1,37 @@
+package dialogbuilder;
+
+import javafx.application.Application;
+import javafx.stage.Stage;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+
+public class MainTestAk extends Application {
+
+    public static void main(String[] args) throws Exception {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        DialogBuilder dialogBuilder = new DialogBuilder();
+
+        // set left and right panels
+        dialogBuilder.setLeftPanels(DialogBuilder.DialogBuilderPanel.LIBRARY_PANEL, DialogBuilder.DialogBuilderPanel.DOCUMENT_PANEL);
+        dialogBuilder.setRightPanels(DialogBuilder.DialogBuilderPanel.INSPECTOR_PANEL);
+
+        // enable only Hierarchy view in the Document panel
+        dialogBuilder.setDocumentPanelStructure(DialogBuilder.DocumentStructure.HIERARCHY);
+
+        // enable only Properties and Layout view in the Inspector panel
+        dialogBuilder.setInspectorPanelStructure(DialogBuilder.InspectorStructure.PROPERTIES, DialogBuilder.InspectorStructure.LAYOUT);
+
+        // groups and items to remove from the Library panel
+        Set<String> filter = new HashSet<>(Arrays.asList("Button", "Accordion", "Shapes", "3D", "Miscellaneous", "Charts"));
+
+        // start DialogBuilder
+        dialogBuilder.start(primaryStage, getParameters(), filter);
+    }
+}

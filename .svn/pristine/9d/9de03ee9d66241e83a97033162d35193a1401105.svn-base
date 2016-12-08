@@ -1,0 +1,1380 @@
+package dialogbuilder;
+
+import org.w3c.dom.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.util.*;
+import com.oracle.javafx.scenebuilder.kit.metadata.util.PropertyName;
+import javafx.scene.layout.GridPane;
+
+public class TextSystemElements {
+
+    public static class TextSystemElement {
+        public String id;
+
+        public int gridX;
+        public int gridY;
+
+        // gridWidth
+        public int gridColumnSpan;
+        // gridHeight
+        public int gridRowSpan;
+
+        // ???
+        public double weightX; //
+        public double weightY; //
+
+        public String anchor;
+        public String fill;
+
+        // Mouse over text
+        public String toolTipText;
+
+        public int insetTop ;
+        public int insetLeft ;
+        public int insetBottom ;
+        public int insetRight;
+
+        public int ipadX ;
+        public int ipadY ;
+
+        public int minimumSizeHeight;
+        public int minimumSizeWidth;
+
+        public int maximumSizeHeight;
+        public int maximumSizeWidth;
+
+        public int preferredSizeHeight;
+        public int preferredSizeWidth;
+
+        public String foreground;
+        public String background;
+
+        // Attribute name: font-bold
+        private Boolean fontBold;
+        // Attribute name: font-italic
+        private Boolean fontItalic;
+        // Attribute name: font-size, default = ???
+        private int fontSize;
+        // Attribute name: font-name, default = ???
+        private String fontName;
+
+        public String nextFocusableComponent;
+
+        public String elementName;
+        public NamedNodeMap attributeMap = null;
+        public TextSystemElement parent = null;
+        public List<TextSystemElement> nodeChildren = new ArrayList<>();
+        public Element xmlElement;
+        public Class<?> componentClass;
+        public LinkedHashMap<String, String> hashMapAttributes = new LinkedHashMap<>();
+        public ArrayList<FXMLSafeProperty> fxmlAttributes = new ArrayList<>();
+
+        public TextSystemElement(Node node) {
+            SetAttributeMap(node);
+            elementName = "TextSystemElement";
+
+            id = GetStringFromAttribute("id");
+            //fxmlAttributes.put("id",
+			//		new FXMLSafeProperty<String>("id","????", new PropertyName("????"), id));
+
+            gridX = GetIntegerFromAttribute("gridX");
+            gridY = GetIntegerFromAttribute("gridY");
+            fxmlAttributes.add(new FXMLSafeProperty<Integer>("gridX","GridPane.columnIndex", new PropertyName("columnIndex", GridPane.class), gridX));
+            fxmlAttributes.add(new FXMLSafeProperty<Integer>("gridY","GridPane.rowIndex", new PropertyName("rowIndex", GridPane.class), gridY));
+
+            gridColumnSpan = GetIntegerFromAttribute("gridWidth");
+            gridRowSpan = GetIntegerFromAttribute("gridHeight");
+            //fxmlAttributes.add(new FXMLSafeProperty<Integer>("gridWidth","GridPane.columnSpan", new PropertyName("columnSpan", GridPane.class), gridColumnSpan));
+            //fxmlAttributes.add(new FXMLSafeProperty<Integer>("gridHeight","GridPane.rowSpan", new PropertyName("rowSpan", GridPane.class), gridRowSpan));
+
+            weightX = GetDoubleFromAttribute("weightX");
+            weightY = GetDoubleFromAttribute("weightY");
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("weightX","????", new PropertyName("????", ????), weightX));
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("weightY","????", new PropertyName("????", ????), weightY));
+
+            //TODO: Anchor is a single attribute,while JavaFX's alignment attribute is split into GridPane.halignment and GridPane.valignment
+            //Possible JavaFX values: "CENTER", "TOP", "BOTTOM", "BASELINE", "INHERIT", "LEFT" & "RIGHT"
+            //Possible XML values: "CENTER", "EAST", "NORTHEAST", "NORTH", "NORTHWEST", "WEST", "SOUTHWEST", "SOUTH" & "SOUTHEAST"
+            anchor = GetStringFromAttribute("anchor");
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("anchor","????", new PropertyName("????", ????), anchor));
+
+
+            //TODO: Fill is a single attribute,while JavaFX's grow attribute is split into GridPane.hgrow and GridPane.vgrow
+            //Possible JavaFX values: "ALWAYS", "SOMETIMES", "NEVER" & "INHERIT"
+            //Possible XML values: "BOTH", "HORIZONTAL", "VERTICAL" & "NEVER"
+            fill = GetStringFromAttribute("fill");
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("fill","????", new PropertyName("????", ????), fill));
+
+            //TODO: Not all JavaFX nodes accept tooltip
+            toolTipText = GetStringFromAttribute("toolTipText");
+            //fxmlAttributes.add(new FXMLSafeProperty<String>("toolTipText","tooltip", new PropertyName("tooltip"), toolTipText));
+
+            //TODO: Put this into the style attribute
+            insetTop = GetIntegerMMFromAttribute("insetTop");
+            insetLeft = GetIntegerMMFromAttribute("insetLeft");
+            insetBottom = GetIntegerMMFromAttribute("insetBottom");
+            insetRight = GetIntegerMMFromAttribute("insetRight");
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("insetTop","????", new PropertyName("????", ????), insetTop));
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("insetLeft","????", new PropertyName("????", ????), insetLeft));
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("insetBottom","????", new PropertyName("????", ????), insetBottom));
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("insetRight","????", new PropertyName("????", ????), insetRight));
+
+            ipadX = GetIntegerMMFromAttribute("ipadX");
+            ipadY = GetIntegerMMFromAttribute("ipadY");
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("ipadX","????", new PropertyName("????", ????), ipadX));
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("ipadY","????", new PropertyName("????", ????), ipadY));
+
+            minimumSizeHeight = GetIntegerMMFromAttribute("minimumSizeHeight");
+            minimumSizeWidth = GetIntegerMMFromAttribute("minimumSizeWidth");
+            //fxmlAttributes.add(new FXMLSafeProperty<Double>("minimumSizeHeight","minHeight", new PropertyName("minHeight"), (double)minimumSizeHeight));
+            //fxmlAttributes.add(new FXMLSafeProperty<Double>("minimumSizeWidth","minWidth", new PropertyName("minWidth"), (double)minimumSizeWidth));
+
+            maximumSizeHeight = GetIntegerMMFromAttribute("maximumSizeHeight");
+            maximumSizeWidth = GetIntegerMMFromAttribute("maximumSizeWidth");
+            //fxmlAttributes.add(new FXMLSafeProperty<Double>("maximumSizeHeight","maxHeight", new PropertyName("maxHeight"), (double)maximumSizeHeight));
+            //fxmlAttributes.add(new FXMLSafeProperty<Double>("maximumSizeWidth","maxWidth", new PropertyName("maxWidth"), (double)maximumSizeWidth));
+			
+            preferredSizeHeight = GetIntegerMMFromAttribute("preferredSizeHeight");
+            preferredSizeWidth = GetIntegerMMFromAttribute("preferredSizeWidth");
+            //fxmlAttributes.add(new FXMLSafeProperty<Double>("preferredSizeHeight","prefHeight", new PropertyName("prefHeight"), (double)preferredSizeHeight));
+            //fxmlAttributes.add(new FXMLSafeProperty<Double>("preferredSizeWidth","prefHeight", new PropertyName("prefHeight"), (double)preferredSizeWidth));
+
+            foreground = GetStringFromAttribute("foreground");
+            background = GetStringFromAttribute("background");
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("foreground","????", new PropertyName("????", ????), foreground));
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("background","????", new PropertyName("????", ????), background));
+
+            fontBold = GetBooleanFromAttribute("font-bold");
+            fontItalic = GetBooleanFromAttribute("font-italic");
+            fontSize = GetIntegerFromAttribute("font-size");
+            fontName = GetStringFromAttribute("font-name");
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("font-bold","????", new PropertyName("????", ????), font-bold));
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("font-italic","????", new PropertyName("????", ????), font-italic));
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("font-size","????", new PropertyName("????", ????), font-size));
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("font-name","????", new PropertyName("????", ????), font-name));
+
+            nextFocusableComponent = GetStringFromAttribute("nextFocusableComponent");
+        }
+
+        public void SetChildren(Node node) {
+            NodeList childList = node.getChildNodes();
+            List<String> tsElementNames = new ArrayList<>();
+
+            // Reverse order
+            // This is because the TextSystem puts the first item in front, while JavaFX puts the last item in front.
+            for (int i = childList.getLength() - 1; i >= 0; i--) {
+                Node childNode = childList.item(i);
+
+                if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+                    if (childNode.getNodeName().equals("Panel")) {
+                        TSPanel childTS = new TSPanel(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("TextFieldControl")) {
+                        TSTextFieldControl childTS = new TSTextFieldControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("ButtonControl")) {
+                        TSButtonControl childTS = new TSButtonControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("ComboboxControl")) {
+                        TSComboboxControl childTS = new TSComboboxControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("ChecklistControl")) {
+                        TSChecklistControl childTS = new TSChecklistControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("DateFieldControl")) {
+                        TSDateFieldControl childTS = new TSDateFieldControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("CheckboxControl")) {
+                        TSCheckboxControl childTS = new TSCheckboxControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("RadioButtonControl")) {
+                        TSRadioButtonControl childTS = new TSRadioButtonControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("NumericTextFieldControl")) {
+                        TSNumericTextFieldControl childTS = new TSNumericTextFieldControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("SpinnerControl")) {
+                        TSSpinnerControl childTS = new TSSpinnerControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("TextAreaControl")) {
+                        TSTextAreaControl childTS = new TSTextAreaControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else {
+                        ErrorHandler(2);
+                        System.out.println(childNode.getNodeName());
+                    }
+                }
+            }
+        }
+
+        public void SetAttributeMap(Node node) {
+            attributeMap = node.getAttributes();
+
+            if (attributeMap == null) {
+                // Error: Attribute map hasn't been set yet
+                System.out.println("Attribute map hasn't been set yet!");
+                System.exit(1);
+            }
+        }
+
+        public String GetStringFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return attributeMap.getNamedItem(attributeName).getNodeValue();
+            }
+
+            return "";
+        }
+
+        public int GetIntegerFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return ParseInt(attributeMap.getNamedItem(attributeName).getNodeValue());
+            }
+
+            return 0;
+        }
+
+        public int GetIntegerMMFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return ParseIntMM(attributeMap.getNamedItem(attributeName).getNodeValue());
+            }
+
+            return 0;
+        }
+
+        public Double GetDoubleFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return ParseDouble(attributeMap.getNamedItem(attributeName).getNodeValue());
+            }
+
+            return 0.0;
+        }
+
+        public Boolean GetBooleanFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                if (attributeMap.getNamedItem(attributeName).getNodeValue().equals("Yes")) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public int ParseInt(String str) {
+            return Integer.parseInt(str);
+        }
+
+        // Parse Integer from String of format: "10mm"
+        public int ParseIntMM(String str) {
+            int strLen = str.length();
+
+            return Integer.parseInt(str.substring(0, strLen - 2));
+        }
+
+        public Double ParseDouble(String str) {
+            return Double.parseDouble(str);
+        }
+
+        public Boolean CheckIfAttributeExists(String attributeName) {
+            if (attributeMap.getNamedItem(attributeName) == null) {
+                //ErrorHandler(1);
+                //System.out.println(attributeName);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public void ErrorHandler(int errorCode) {
+            if (errorCode == 1) {
+                System.out.println("Attribute name doesn't exist!");
+            }
+            if (errorCode == 2) {
+                System.out.print("Unrecognized element name: ");
+            }
+            else {
+                System.out.println("Unknown error!");
+            }
+        }
+
+        @Override
+        public String toString() {
+            String output = "========TSElement=======\n";
+            output += "ID: " + id + "\n";
+            output += "GridX: " + gridX + "\n";
+            output += "GridY: " + gridY + "\n";
+            output += "GridColumnSpan: " + gridColumnSpan + "\n";
+            output += "GridRowSpan: " + gridRowSpan + "\n";
+            output += "WeightX: " + weightX + "\n";
+            output += "WeightY: " + weightY + "\n";
+            output += "Anchor: " + anchor + "\n";
+            output += "Fill: " + fill + "\n";
+            output += "ToolTipText: " + toolTipText + "\n";
+            output += "InsetTop: " + insetTop + "\n";
+            output += "InsetLeft: " + insetLeft + "\n";
+            output += "InsetBottom: " + insetBottom + "\n";
+            output += "InsetRight: " + insetRight + "\n";
+            output += "IpadX: " + ipadX + "\n";
+            output += "IpadY: " + ipadY + "\n";
+            output += "MinimumSizeHeight: " + minimumSizeHeight + "\n";
+            output += "MinimumSizeWidth: " + minimumSizeWidth + "\n";
+            output += "MaximumSizeHeight: " + maximumSizeHeight + "\n";
+            output += "MaximumSizeWidth: " + maximumSizeWidth + "\n";
+            output += "PreferredSizeHeight: " + preferredSizeHeight + "\n";
+            output += "PreferredSizeWidth: " + preferredSizeWidth + "\n";
+            output += "Foreground: " + foreground + "\n";
+            output += "Background: " + background + "\n";
+            output += "FontBold: " + fontBold + "\n";
+            output += "FontItalic: " + fontItalic + "\n";
+            output += "FontSize: " + fontSize + "\n";
+            output += "FontName: " + fontName + "\n";
+            output += "NextFocusableComponent: " + nextFocusableComponent + "\n";
+            output += "========" + elementName + "=======\n";
+
+            return output;
+        }
+
+        public void outputTree(String preTabs) {
+            if (preTabs.length() == 0) {
+                System.out.println("TSElement tree:");
+            }
+
+            System.out.println(preTabs + elementName + ": " + id);
+            for (int i = 0; i < nodeChildren.size(); i++) {
+                nodeChildren.get(i).outputTree("\t" + preTabs);
+            }
+        }
+
+        public Element generateXmlElement() {
+            try {
+                DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+                // root elements
+                Document doc = docBuilder.newDocument();
+                Element elementPreGenerated = doc.createElement(elementName);
+
+                if (!checkIfValueDefault(id))
+                    elementPreGenerated.setAttribute("id", id);
+                if (!checkIfValueDefault(gridX))
+                    elementPreGenerated.setAttribute("gridX", String.valueOf(gridX));
+                if (!checkIfValueDefault(gridY))
+                    elementPreGenerated.setAttribute("gridY", String.valueOf(gridY));
+                if (!checkIfValueDefault(gridColumnSpan))
+                    elementPreGenerated.setAttribute("gridColumnSpan", String.valueOf(gridColumnSpan));
+                if (!checkIfValueDefault(gridRowSpan))
+                    elementPreGenerated.setAttribute("gridRowSpan", String.valueOf(gridRowSpan));
+                if (!checkIfValueDefault(weightX))
+                    elementPreGenerated.setAttribute("weightX", String.valueOf(weightX));
+                if (!checkIfValueDefault(weightY))
+                    elementPreGenerated.setAttribute("weightY", String.valueOf(weightY));
+                if (!checkIfValueDefault(anchor))
+                    elementPreGenerated.setAttribute("anchor", anchor);
+                if (!checkIfValueDefault(fill))
+                    elementPreGenerated.setAttribute("fill", fill);
+                if (!checkIfValueDefault(toolTipText))
+                    elementPreGenerated.setAttribute("toolTipText", toolTipText);
+                if (!checkIfValueDefault(insetTop))
+                    elementPreGenerated.setAttribute("insetTop", String.valueOf(insetTop));
+                if (!checkIfValueDefault(insetLeft))
+                    elementPreGenerated.setAttribute("insetLeft", String.valueOf(insetLeft));
+                if (!checkIfValueDefault(insetBottom))
+                    elementPreGenerated.setAttribute("insetBottom", String.valueOf(insetBottom));
+                if (!checkIfValueDefault(insetRight))
+                    elementPreGenerated.setAttribute("insetRight", String.valueOf(insetRight));
+                if (!checkIfValueDefault(ipadX))
+                    elementPreGenerated.setAttribute("ipadX", String.valueOf(ipadX));
+                if (!checkIfValueDefault(ipadY))
+                    elementPreGenerated.setAttribute("ipadY", String.valueOf(ipadY));
+                if (!checkIfValueDefault(minimumSizeHeight))
+                    elementPreGenerated.setAttribute("minHeight", String.valueOf(minimumSizeHeight));
+                if (!checkIfValueDefault(minimumSizeWidth))
+                    elementPreGenerated.setAttribute("maxHeight", String.valueOf(minimumSizeWidth));
+                if (!checkIfValueDefault(maximumSizeHeight))
+                    elementPreGenerated.setAttribute("maxHeight", String.valueOf(maximumSizeHeight));
+                if (!checkIfValueDefault(maximumSizeWidth))
+                    elementPreGenerated.setAttribute("maxWidth", String.valueOf(maximumSizeWidth));
+                if (!checkIfValueDefault(preferredSizeHeight))
+                    elementPreGenerated.setAttribute("prefHeight", String.valueOf(preferredSizeHeight));
+                if (!checkIfValueDefault(preferredSizeWidth))
+                    elementPreGenerated.setAttribute("prefWidth", String.valueOf(preferredSizeWidth));
+                if (!checkIfValueDefault(foreground))
+                    elementPreGenerated.setAttribute("foreground", foreground);
+                if (!checkIfValueDefault(background))
+                    elementPreGenerated.setAttribute("background", background);
+                if (fontBold)
+                    elementPreGenerated.setAttribute("fontBold", String.valueOf(fontBold));
+                if (fontItalic)
+                    elementPreGenerated.setAttribute("fontItalic", String.valueOf(fontItalic));
+                if (!checkIfValueDefault(fontSize))
+                    elementPreGenerated.setAttribute("fontSize", String.valueOf(fontSize));
+                if (!checkIfValueDefault(fontName))
+                    elementPreGenerated.setAttribute("fontName", fontName);
+                if (!checkIfValueDefault(nextFocusableComponent))
+                    elementPreGenerated.setAttribute("nextFocusableComponent", nextFocusableComponent);
+
+                return elementPreGenerated;
+            }
+            catch (ParserConfigurationException pce) {
+                pce.printStackTrace();
+            }
+
+            return null;
+        }
+
+        public Element GetXmlElements() {
+            for (int i = 0; i < nodeChildren.size(); i++) {
+                xmlElement.appendChild(xmlElement.getOwnerDocument().importNode(nodeChildren.get(i).GetXmlElements(), true));
+            }
+
+            return xmlElement;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = new LinkedHashMap<>();
+
+            if (!checkIfValueDefault(id))
+                attributeHashMap.put("id", id);
+            if (!checkIfValueDefault(gridX))
+                attributeHashMap.put("gridX", String.valueOf(gridX));
+            if (!checkIfValueDefault(gridY))
+                attributeHashMap.put("gridY", String.valueOf(gridY));
+            if (!checkIfValueDefault(gridColumnSpan))
+                attributeHashMap.put("gridColumnSpan", String.valueOf(gridColumnSpan));
+            if (!checkIfValueDefault(gridRowSpan))
+                attributeHashMap.put("gridRowSpan", String.valueOf(gridRowSpan));
+            if (!checkIfValueDefault(weightX))
+                attributeHashMap.put("weightX", String.valueOf(weightX));
+            if (!checkIfValueDefault(weightY))
+                attributeHashMap.put("weightY", String.valueOf(weightY));
+            if (!checkIfValueDefault(anchor))
+                attributeHashMap.put("anchor", anchor);
+            if (!checkIfValueDefault(fill))
+                attributeHashMap.put("fill", fill);
+            if (!checkIfValueDefault(toolTipText))
+                attributeHashMap.put("toolTipText", toolTipText);
+            if (!checkIfValueDefault(insetTop))
+                attributeHashMap.put("insetTop", String.valueOf(insetTop));
+            if (!checkIfValueDefault(insetLeft))
+                attributeHashMap.put("insetLeft", String.valueOf(insetLeft));
+            if (!checkIfValueDefault(insetBottom))
+                attributeHashMap.put("insetBottom", String.valueOf(insetBottom));
+            if (!checkIfValueDefault(insetRight))
+                attributeHashMap.put("insetRight", String.valueOf(insetRight));
+            if (!checkIfValueDefault(ipadX))
+                attributeHashMap.put("ipadX", String.valueOf(ipadX));
+            if (!checkIfValueDefault(ipadY))
+                attributeHashMap.put("ipadY", String.valueOf(ipadY));
+            if (!checkIfValueDefault(minimumSizeHeight))
+                attributeHashMap.put("minHeight", String.valueOf(minimumSizeHeight));
+            if (!checkIfValueDefault(minimumSizeWidth))
+                attributeHashMap.put("maxHeight", String.valueOf(minimumSizeWidth));
+            if (!checkIfValueDefault(maximumSizeHeight))
+                attributeHashMap.put("maxHeight", String.valueOf(maximumSizeHeight));
+            if (!checkIfValueDefault(maximumSizeWidth))
+                attributeHashMap.put("maxWidth", String.valueOf(maximumSizeWidth));
+            if (!checkIfValueDefault(preferredSizeHeight))
+                attributeHashMap.put("prefHeight", String.valueOf(preferredSizeHeight));
+            if (!checkIfValueDefault(preferredSizeWidth))
+                attributeHashMap.put("prefWidth", String.valueOf(preferredSizeWidth));
+            if (!checkIfValueDefault(foreground))
+                attributeHashMap.put("foreground", foreground);
+            if (!checkIfValueDefault(background))
+                attributeHashMap.put("background", background);
+            if (fontBold)
+                attributeHashMap.put("fontBold", String.valueOf(fontBold));
+            if (fontItalic)
+                attributeHashMap.put("fontItalic", String.valueOf(fontItalic));
+            if (!checkIfValueDefault(fontSize))
+                attributeHashMap.put("fontSize", String.valueOf(fontSize));
+            if (!checkIfValueDefault(fontName))
+                attributeHashMap.put("fontName", fontName);
+            if (!checkIfValueDefault(nextFocusableComponent))
+                attributeHashMap.put("nextFocusableComponent", nextFocusableComponent);
+
+            return attributeHashMap;
+        }
+
+        // TODO Ask if redundant properties be ignored
+        public Boolean checkIfValueDefault(String str) {
+            return false;
+            //return str.isEmpty();
+        }
+
+        public Boolean checkIfValueDefault(int num) {
+            return false;
+            //return num == 0;
+        }
+
+        public Boolean checkIfValueDefault(Double num) {
+            return false;
+            //return num == 0.0;
+        }
+
+        public String makeFxmlText() {
+            String str =
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<?import " + componentClass.getCanonicalName() + "?>\n" +
+                    "<" + componentClass.getSimpleName() + " " +
+                    makeAttributeText() +
+                            "/>\n";
+
+            return str;
+        }
+
+		
+        public String makeAttributeText() {
+            // TODO Only mirrored attributes work (attribute names that are already in JavaFX), need to implement getter/setter generation for new attributes
+            String attributeString = "";
+			
+			/*
+            Iterator it = hashMapAttributes.entrySet().iterator();
+            while(it.hasNext()) {
+                Map.Entry pair = (Map.Entry)it.next();
+                attributeString += pair.getKey() + "=\"" + pair.getValue() + "\" ";
+                it.remove();
+            }
+
+            System.out.println(attributeString);
+			*/
+			
+            return attributeString;
+        }
+    }
+
+    public static class TSPanel extends TextSystemElement {
+        private int numOfColumns;
+        private int numOfRows;
+
+        public TSPanel(Node node) {
+            super(node);
+            elementName = "TSPanel";
+
+            SetChildren(node);
+            int[] numRowsColumns = SetGridPositionsAndReturnSize();
+            numOfColumns = numRowsColumns[0];
+            numOfRows = numRowsColumns[1];
+
+            hashMapAttributes = getAttributeHashMap();
+            xmlElement = generateXmlElement();
+            componentClass = javafx.scene.layout.GridPane.class;
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "numOfColumns: " + numOfColumns + "\n";
+            output += "numOfRows: " + numOfRows + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+
+            if (!checkIfValueDefault(numOfColumns))
+                elementTextField.setAttribute("numOfColumns", String.valueOf(numOfColumns));
+            if (!checkIfValueDefault(numOfRows))
+                elementTextField.setAttribute("numOfRows", String.valueOf(numOfRows));
+
+            return elementTextField;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            attributeHashMap.put("numOfRows", String.valueOf(numOfRows));
+            attributeHashMap.put("numOfColumns", String.valueOf(numOfColumns));
+
+            return attributeHashMap;
+        }
+
+        private int[] SetGridPositionsAndReturnSize() {
+            //TODO Ask why some positions begin with (1,1) and others with (0,0)...
+
+            int columnNum; //Width
+            int rowNum; //Height
+            int[] numArray = new int[2];
+
+            List<Integer> positionColumnList = new ArrayList<>();
+            List<Integer> positionRowList = new ArrayList<>();
+
+            int minColumn = Integer.MAX_VALUE;
+            int minRow = Integer.MAX_VALUE;
+            int maxColumn = Integer.MIN_VALUE;
+            int maxRow = Integer.MIN_VALUE;
+
+            for (int i = 0; i < nodeChildren.size(); i++) {
+                int xPos = nodeChildren.get(i).gridX;
+                int yPos = nodeChildren.get(i).gridY;
+
+                int columnSpan = nodeChildren.get(i).gridColumnSpan;
+                int rowSpan = nodeChildren.get(i).gridRowSpan;
+
+                positionColumnList.add(xPos);
+                positionRowList.add(yPos);
+
+                if (xPos < minColumn)
+                    minColumn = xPos;
+                if (xPos + columnSpan - 1 > maxColumn)
+                    maxColumn = xPos;
+                if (yPos < minRow)
+                    minRow = yPos;
+                if (yPos + rowSpan - 1 > maxRow)
+                    maxRow = yPos;
+            }
+
+            if (minColumn != 0 && minRow != 0) {
+                // Indent all positions so it starts with (0,0)
+                int columnIndent = -minColumn;
+                int rowIndent = -minRow;
+
+                for (int i = 0; i < nodeChildren.size(); i++) {
+                    nodeChildren.get(i).gridX += columnIndent;
+                    nodeChildren.get(i).gridY += rowIndent;
+
+                    nodeChildren.get(i).hashMapAttributes.put("gridX", String.valueOf(nodeChildren.get(i).gridX));
+                    nodeChildren.get(i).hashMapAttributes.put("gridY", String.valueOf(nodeChildren.get(i).gridY));
+
+                    //TODO: Better way?
+                    for(FXMLSafeProperty fsp : nodeChildren.get(i).fxmlAttributes) {
+                        if(fsp.getXmlAttributeName() == "gridX") {
+                            fsp.setValue(nodeChildren.get(i).gridX);
+                        }
+                        else if(fsp.getXmlAttributeName() == "gridY") {
+                            fsp.setValue(nodeChildren.get(i).gridY);
+                        }
+                    }
+                }
+            }
+
+            columnNum = maxColumn - minColumn + 1;
+            rowNum = maxRow - minRow + 1;
+
+            numArray[0] = columnNum;
+            numArray[1] = rowNum;
+
+            return numArray;
+        }
+
+        public int getNumOfColumns() {
+            return numOfColumns;/*
+            ArrayList<Integer> known_positions = new ArrayList<Integer>();
+            for (TextSystemElement node : nodeChildren) {
+                if(!known_positions.contains(node.gridX)) {
+                    known_positions.add(node.gridX);
+                }
+            }
+            return known_positions.size();*/
+        }
+
+        public int getNumOfRows() {
+            return numOfRows;/*
+            ArrayList<Integer> known_positions = new ArrayList<Integer>();
+            for (TextSystemElement node : nodeChildren) {
+                if(!known_positions.contains(node.gridY)) {
+                    known_positions.add(node.gridY);
+                }
+            }
+            return known_positions.size();*/
+        }
+
+        @Override
+        public String makeFxmlText() {
+            String str =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<?import " + componentClass.getCanonicalName() + "?>\n" +
+                "<" + componentClass.getSimpleName() + " " +
+                makeAttributeText() + " >\n";
+
+            //TODO: Fill the contraints with attributes and create them differently
+            str += "\t<columnConstraints>\n";
+            for(int i = 0; i < numOfColumns; i++) {
+                str += "\t\t<ColumnConstraints />\n";
+            }
+            str += "\t</columnConstraints>\n";
+
+            str += "\t<rowConstraints>\n";
+            for(int i = 0; i < numOfRows; i++) {
+                str += "\t\t<RowConstraints />\n";
+            }
+            str += "\t</rowConstraints>\n";
+            str += "</" + componentClass.getSimpleName() + ">\n";
+			
+            return str;
+        }
+
+        @Override
+        public String makeAttributeText() {
+            String attributeText = "";
+            attributeText += "GridPane.columnIndex=\"" + this.gridX + "\" ";
+            attributeText += "GridPane.rowIndex=\"" + this.gridY + "\" ";
+            return attributeText;
+        }
+    }
+
+    public static class TSTextFieldControl extends TextSystemElement {
+        private int maxLen;
+        private String alignment;
+        private Boolean editable;
+
+        public TSTextFieldControl(Node node) {
+            super(node);
+            elementName = "TSTextFieldControl";
+
+            maxLen = GetIntegerFromAttribute("maxLen");
+            alignment = GetStringFromAttribute("alignment");
+            editable = GetBooleanFromAttribute("ed");
+            //fxmlAttributes.put("maxLen",
+            //        new FXMLSafeProperty<????>("maxLen","????", new PropertyName("????", ????), maxLen));
+            //fxmlAttributes.put("alignment",
+            //        new FXMLSafeProperty<????>("alignment","????", new PropertyName("????", ????), alignment));
+            //fxmlAttributes.put("ed",
+            //        new FXMLSafeProperty<????>("ed","????", new PropertyName("????", ????), ed));
+
+            SetChildren(node);
+
+            hashMapAttributes = getAttributeHashMap();
+
+            xmlElement = generateXmlElement();
+            componentClass = javafx.scene.control.TextField.class;
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "MaxLen: " + maxLen + "\n";
+            output += "Alignment: " + alignment + "\n";
+            output += "Editable: " + editable + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+
+            if (!checkIfValueDefault(maxLen))
+                elementTextField.setAttribute("maxLen", String.valueOf(maxLen));
+            if (!checkIfValueDefault(alignment))
+                elementTextField.setAttribute("alignment", String.valueOf(alignment));
+            if (editable)
+                elementTextField.setAttribute("alignment", String.valueOf(editable));
+
+
+            return elementTextField;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            if (!checkIfValueDefault(maxLen))
+                attributeHashMap.put("maxLen", String.valueOf(maxLen));
+            if (!checkIfValueDefault(alignment))
+                attributeHashMap.put("alignment", String.valueOf(alignment));
+            if (editable)
+                attributeHashMap.put("editable", String.valueOf(editable));
+
+            return attributeHashMap;
+        }
+    }
+
+    public static class TSButtonControl extends TextSystemElement {
+        private String text;
+        private String mnemonic;
+
+        public TSButtonControl(Node node) {
+            super(node);
+            elementName = "TSButtonControl";
+
+            text = GetStringFromAttribute("text");
+            mnemonic = GetStringFromAttribute("mnemonic");
+            fxmlAttributes.add(new FXMLSafeProperty<String>("text","text", new PropertyName("text"), text));
+            //fxmlAttributes.add(new FXMLSafeProperty<????>("mnemonic","????", new PropertyName("????", ????), mnemonic));
+
+            SetChildren(node);
+
+
+            hashMapAttributes = getAttributeHashMap();
+            xmlElement = generateXmlElement();
+            componentClass = javafx.scene.control.Button.class;
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "Text: " + text + "\n";
+            output += "Mnemonic: " + mnemonic + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementButton = super.generateXmlElement();
+
+            if (!checkIfValueDefault(text))
+                elementButton.setAttribute("Text", text);
+            if (!checkIfValueDefault(mnemonic))
+                elementButton.setAttribute("mnemonic", mnemonic);
+
+            return elementButton;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            if (!checkIfValueDefault(text))
+                attributeHashMap.put("Text", text);
+            if (!checkIfValueDefault(mnemonic))
+                attributeHashMap.put("mnemonic", mnemonic);
+
+            return attributeHashMap;
+        }
+
+		@Override
+        public String makeAttributeText() {
+            String attributeText = super.makeAttributeText();
+            attributeText += "text=\"" + this.text + "\" ";
+            attributeText += "GridPane.columnIndex=\"" + this.gridX + "\" ";
+            attributeText += "GridPane.rowIndex=\"" + this.gridY + "\" ";
+            return attributeText;
+        }
+    }
+
+    public static class TSComboboxControl extends TextSystemElement {
+        private int maxLen;
+        private Boolean editable;
+
+        public TSComboboxControl(Node node) {
+            super(node);
+            elementName = "TSComboboxControl";
+
+            maxLen = GetIntegerFromAttribute("maxLen");
+            editable = GetBooleanFromAttribute("ed");
+
+            SetChildren(node);
+
+            hashMapAttributes = getAttributeHashMap();
+            xmlElement = generateXmlElement();
+            componentClass = javafx.scene.control.ComboBox.class;
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "MaxLen: " + maxLen + "\n";
+            output += "Editable: " + editable + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+
+            if (!checkIfValueDefault(maxLen))
+                elementTextField.setAttribute("maxLen", String.valueOf(maxLen));
+            if (editable)
+                elementTextField.setAttribute("editable", String.valueOf(editable));
+
+            return elementTextField;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            if (!checkIfValueDefault(maxLen))
+                attributeHashMap.put("maxLen", String.valueOf(maxLen));
+            if (editable)
+                attributeHashMap.put("editable", String.valueOf(editable));
+
+            return attributeHashMap;
+        }
+    }
+
+    public static class TSChecklistControl extends TextSystemElement {
+        private Boolean multipleSelection;
+
+        public TSChecklistControl(Node node) {
+            super(node);
+            elementName = "TSChecklistControl";
+
+            multipleSelection = GetBooleanFromAttribute("multipleSelection");
+
+            SetChildren(node);
+
+            hashMapAttributes = getAttributeHashMap();
+            xmlElement = generateXmlElement();
+            componentClass = null; //TODO Implement ChecklistControl in JavaFX
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "MultipleSelection: " + multipleSelection + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+
+            if (multipleSelection)
+                elementTextField.setAttribute("multipleSelection", String.valueOf(multipleSelection));
+
+            return elementTextField;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            if (multipleSelection)
+                attributeHashMap.put("multipleSelection", String.valueOf(multipleSelection));
+
+            return attributeHashMap;
+        }
+    }
+
+    public static class TSDateFieldControl extends TextSystemElement {
+        private String format;
+        private Boolean editable;
+
+        public TSDateFieldControl(Node node) {
+            super(node);
+            elementName = "TSDateFieldControl";
+
+            format = GetStringFromAttribute("format");
+            editable = GetBooleanFromAttribute("ed");
+
+            SetChildren(node);
+
+            hashMapAttributes = getAttributeHashMap();
+            xmlElement = generateXmlElement();
+            componentClass = null; //TODO Implement DateFieldControl in JavaFX
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "Format: " + format + "\n";
+            output += "Editable: " + editable + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+
+            if (checkIfValueDefault(format))
+                elementTextField.setAttribute("format", String.valueOf(format));
+            if (editable)
+                elementTextField.setAttribute("editable", String.valueOf(editable));
+
+            return elementTextField;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            if (checkIfValueDefault(format))
+                attributeHashMap.put("format", String.valueOf(format));
+            if (editable)
+                attributeHashMap.put("editable", String.valueOf(editable));
+
+            return attributeHashMap;
+        }
+    }
+
+    public static class TSCheckboxControl extends TextSystemElement {
+        private Boolean multipleSelection;
+
+        public TSCheckboxControl(Node node) {
+            super(node);
+            elementName = "TSCheckboxControl";
+
+            multipleSelection = GetBooleanFromAttribute("multipleSelection");
+
+            SetChildren(node);
+
+            hashMapAttributes = getAttributeHashMap();
+            xmlElement = generateXmlElement();
+            componentClass = javafx.scene.control.CheckBox.class;
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "MultipleSelection: " + multipleSelection + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+
+            if (multipleSelection)
+                elementTextField.setAttribute("multipleSelection", String.valueOf(multipleSelection));
+
+            return elementTextField;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            if (multipleSelection)
+                attributeHashMap.put("multipleSelection", String.valueOf(multipleSelection));
+
+            return attributeHashMap;
+        }
+    }
+
+    public static class TSRadioButtonControl extends TextSystemElement {
+        // Attribute name: boxPositionFirst
+        private Boolean initialValue;
+        private String text;
+        private Boolean value;
+
+        public TSRadioButtonControl(Node node) {
+            super(node);
+            elementName = "TSRadioButtonControl";
+
+            initialValue = GetBooleanFromAttribute("boxPositionFirst");
+            text = GetStringFromAttribute("text");
+            value = GetBooleanFromAttribute("value");
+
+            SetChildren(node);
+
+            hashMapAttributes = getAttributeHashMap();
+            xmlElement = generateXmlElement();
+            componentClass = javafx.scene.control.RadioButton.class;
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "InitialValue: " + initialValue + "\n";
+            output += "Text: " + text + "\n";
+            output += "Value: " + value + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+
+            if (initialValue)
+                elementTextField.setAttribute("initialValue", String.valueOf(initialValue));
+            if (checkIfValueDefault(text))
+                elementTextField.setAttribute("text", text);
+            if (value)
+                elementTextField.setAttribute("value", String.valueOf(value));
+
+            return elementTextField;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            if (initialValue)
+                attributeHashMap.put("initialValue", String.valueOf(initialValue));
+            if (CheckIfAttributeExists(text))
+                attributeHashMap.put("text", text);
+            if (value)
+                attributeHashMap.put("value", String.valueOf(value));
+
+            return attributeHashMap;
+        }
+
+		@Override
+        public String makeAttributeText() {
+            return super.makeAttributeText() + "text=\"" + this.text.toString() + "\"";
+        }
+    }
+
+    public static class TSNumericTextFieldControl extends TextSystemElement {
+        private int maxLen;
+        private String alignment;
+        private Boolean selectAll;
+        // Attribute name: ed
+        private Boolean editable;
+
+        public TSNumericTextFieldControl(Node node) {
+            super(node);
+            elementName = "TSNumericTextFieldControl";
+
+            maxLen = GetIntegerFromAttribute("maxLen");
+            alignment = GetStringFromAttribute("alignment");
+            selectAll = GetBooleanFromAttribute("selectAll");
+            editable = GetBooleanFromAttribute("ed");
+
+            SetChildren(node);
+
+            hashMapAttributes = getAttributeHashMap();
+            xmlElement = generateXmlElement();
+            componentClass = null; // TODO Implement NumericTextFieldControl in JavaFX
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "MaxLen: " + maxLen + "\n";
+            output += "Alignment: " + alignment + "\n";
+            output += "SelectAll: " + selectAll + "\n";
+            output += "Editable: " + editable + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+
+            if (checkIfValueDefault(maxLen))
+                elementTextField.setAttribute("maxLen", String.valueOf(maxLen));
+            if (checkIfValueDefault(alignment))
+                elementTextField.setAttribute("alignment", alignment);
+            if (selectAll)
+                elementTextField.setAttribute("selectAll", String.valueOf(selectAll));
+            if (editable)
+                elementTextField.setAttribute("editable", String.valueOf(editable));
+
+            return elementTextField;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            if (checkIfValueDefault(maxLen))
+                attributeHashMap.put("maxLen", String.valueOf(maxLen));
+            if (CheckIfAttributeExists(alignment))
+                attributeHashMap.put("alignment", alignment);
+            if (selectAll)
+                attributeHashMap.put("selectAll", String.valueOf(selectAll));
+            if (editable)
+                attributeHashMap.put("editable", String.valueOf(editable));
+
+            return attributeHashMap;
+        }
+    }
+
+    public static class TSSpinnerControl extends TextSystemElement {
+        // Attribute name: ed
+        private Boolean editable;
+        private int minValue;
+        private int maxValue;
+        private int step;
+
+        public TSSpinnerControl(Node node) {
+            super(node);
+            elementName = "TSSpinnerControl";
+
+            editable = GetBooleanFromAttribute("ed");
+            minValue = GetIntegerFromAttribute("minValue");
+            maxValue = GetIntegerFromAttribute("maxValue");
+            step = GetIntegerFromAttribute("step");
+
+            SetChildren(node);
+
+            hashMapAttributes = getAttributeHashMap();
+            xmlElement = generateXmlElement();
+            componentClass = null; // TODO Implement SpinnerControl in JavaFX
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "Editable: " + editable + "\n";
+            output += "MinValue: " + minValue + "\n";
+            output += "MaxValue: " + maxValue + "\n";
+            output += "Step: " + step + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+
+            if (editable)
+                elementTextField.setAttribute("editable", String.valueOf(editable));
+            if (checkIfValueDefault(minValue))
+                elementTextField.setAttribute("minValue", String.valueOf(minValue));
+            if (checkIfValueDefault(maxValue))
+                elementTextField.setAttribute("maxValue", String.valueOf(maxValue));
+            if (checkIfValueDefault(step))
+                elementTextField.setAttribute("step", String.valueOf(step));
+
+            return elementTextField;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            if (editable)
+                attributeHashMap.put("editable", String.valueOf(editable));
+            if (checkIfValueDefault(minValue))
+                attributeHashMap.put("minValue", String.valueOf(minValue));
+            if (checkIfValueDefault(maxValue))
+                attributeHashMap.put("maxValue", String.valueOf(maxValue));
+            if (checkIfValueDefault(step))
+                attributeHashMap.put("step", String.valueOf(step));
+
+            return attributeHashMap;
+        }
+    }
+
+    public static class TSTextAreaControl extends TextSystemElement {
+        private int maxLen;
+        private String alignment;
+        private Boolean selectAll;
+        private Boolean lineWrap;
+        private Boolean wrapStyleWord;
+        // Attribute name: ed
+        private Boolean editable;
+
+        public TSTextAreaControl(Node node) {
+            super(node);
+            elementName = "TSTextAreaControl";
+
+            maxLen = GetIntegerFromAttribute("maxLen");
+            alignment = GetStringFromAttribute("alignment");
+            selectAll = GetBooleanFromAttribute("selectAll");
+            lineWrap = GetBooleanFromAttribute("lineWrap");
+            wrapStyleWord = GetBooleanFromAttribute("wrapStyleWord");
+            editable = GetBooleanFromAttribute("ed");
+
+            SetChildren(node);
+
+            hashMapAttributes = getAttributeHashMap();
+            xmlElement = generateXmlElement();
+            componentClass = javafx.scene.control.TextArea.class;
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "MaxLen: " + maxLen + "\n";
+            output += "Alignment: " + alignment + "\n";
+            output += "SelectAll: " + selectAll + "\n";
+            output += "LineWrap: " + lineWrap + "\n";
+            output += "WrapStyleWord: " + wrapStyleWord + "\n";
+            output += "Editable: " + editable + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+
+            if (checkIfValueDefault(maxLen))
+                elementTextField.setAttribute("maxLen", String.valueOf(maxLen));
+            if (checkIfValueDefault(alignment))
+                elementTextField.setAttribute("alignment", String.valueOf(alignment));
+            if (selectAll)
+                elementTextField.setAttribute("selectAll", String.valueOf(selectAll));
+            if (lineWrap)
+                elementTextField.setAttribute("lineWrap", String.valueOf(lineWrap));
+            if (wrapStyleWord)
+                elementTextField.setAttribute("wrapStyleWord", String.valueOf(wrapStyleWord));
+            if (editable)
+                elementTextField.setAttribute("editable", String.valueOf(editable));
+
+            return elementTextField;
+        }
+
+        public LinkedHashMap<String, String> getAttributeHashMap() {
+            LinkedHashMap<String, String> attributeHashMap = super.getAttributeHashMap();
+
+            if (checkIfValueDefault(maxLen))
+                attributeHashMap.put("maxLen", String.valueOf(maxLen));
+            if (checkIfValueDefault(alignment))
+                attributeHashMap.put("alignment", String.valueOf(alignment));
+            if (selectAll)
+                attributeHashMap.put("selectAll", String.valueOf(selectAll));
+            if (lineWrap)
+                attributeHashMap.put("lineWrap", String.valueOf(lineWrap));
+            if (wrapStyleWord)
+                attributeHashMap.put("wrapStyleWord", String.valueOf(wrapStyleWord));
+            if (editable)
+                attributeHashMap.put("editable", String.valueOf(editable));
+
+            return attributeHashMap;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

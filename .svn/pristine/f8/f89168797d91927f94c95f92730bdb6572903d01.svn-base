@@ -1,0 +1,792 @@
+package dialogbuilder;
+
+import org.w3c.dom.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+public class TextSystemElements {
+
+    public static class TextSystemElement {
+        public String id;
+
+        public int gridX;
+        public int gridY;
+
+        // gridWidth
+        public int gridColumnSpan;
+        // gridHeight
+        public int gridRowSpan;
+
+        // ???
+        public double weightX; //
+        public double weightY; //
+
+        public String anchor;
+        public String fill;
+
+        // Mouse over text
+        public String toolTipText;
+
+        public int insetTop ;
+        public int insetLeft ;
+        public int insetBottom ;
+        public int insetRight;
+
+        public int ipadX ;
+        public int ipadY ;
+
+        public int minimumSizeHeight;
+        public int minimumSizeWidth;
+
+        public int maximumSizeHeight;
+        public int maximumSizeWidth;
+
+        public int preferredSizeHeight;
+        public int preferredSizeWidth;
+
+        public String foreground;
+        public String background;
+
+        // Attribute name: font-bold
+        private Boolean fontBold;
+        // Attribute name: font-italic
+        private Boolean fontItalic;
+        // Attribute name: font-size, default = ???
+        private int fontSize;
+        // Attribute name: font-name, default = ???
+        private String fontName;
+
+        public String nextFocusableComponent;
+
+        public NamedNodeMap attributeMap = null;
+        public TextSystemElement parent = null;
+        public List<TextSystemElement> nodeChildren = new ArrayList<>();
+        public Element xmlElement;
+        public Class<?> componentClass;
+
+        public TextSystemElement(Node node) {
+            SetAttributeMap(node);
+
+            id = GetStringFromAttribute("id");
+
+            gridX = GetIntegerFromAttribute("gridX");
+            gridY = GetIntegerFromAttribute("gridY");
+
+            gridColumnSpan = GetIntegerFromAttribute("gridWidth");
+            gridRowSpan = GetIntegerFromAttribute("gridHeight");
+
+            weightX = GetDoubleFromAttribute("weightX");
+            weightY = GetDoubleFromAttribute("weightY");
+
+            anchor = GetStringFromAttribute("anchor");
+            fill = GetStringFromAttribute("fill");
+            toolTipText = GetStringFromAttribute("toolTipText");
+
+            insetTop = GetIntegerMMFromAttribute("insetTop");
+            insetLeft = GetIntegerMMFromAttribute("insetLeft");
+            insetBottom = GetIntegerMMFromAttribute("insetBottom");
+            insetRight = GetIntegerMMFromAttribute("insetRight");
+
+            ipadX = GetIntegerMMFromAttribute("ipadX");
+            ipadY = GetIntegerMMFromAttribute("ipadY");
+
+            minimumSizeHeight = GetIntegerMMFromAttribute("minimumSizeHeight");
+            minimumSizeWidth = GetIntegerMMFromAttribute("minimumSizeWidth");
+            maximumSizeHeight = GetIntegerMMFromAttribute("maximumSizeHeight");
+            maximumSizeWidth = GetIntegerMMFromAttribute("maximumSizeWidth");
+            preferredSizeHeight = GetIntegerMMFromAttribute("preferredSizeHeight");
+            preferredSizeWidth = GetIntegerMMFromAttribute("preferredSizeWidth");
+
+            foreground = GetStringFromAttribute("foreground");
+            background = GetStringFromAttribute("background");
+
+            fontBold = GetBooleanFromAttribute("font-bold");
+            fontItalic = GetBooleanFromAttribute("font-italic");
+            fontSize = GetIntegerFromAttribute("font-size");
+            fontName = GetStringFromAttribute("font-name");
+
+            nextFocusableComponent = GetStringFromAttribute("nextFocusableComponent");
+        }
+
+        public void SetChildren(Node node) {
+            NodeList childList = node.getChildNodes();
+            for (int i = 0; i < childList.getLength(); i++) {
+                Node childNode = childList.item(i);
+
+                if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+                    if (childNode.getNodeName().equals("Panel")) {
+                        TSPanel childTS = new TSPanel(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("TextFieldControl")) {
+                        TSTextFieldControl childTS = new TSTextFieldControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("ButtonControl")) {
+                        TSButtonControl childTS = new TSButtonControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else {
+                        //TODO other TSElements
+                    }
+                }
+            }
+        }
+
+        public void SetAttributeMap(Node node) {
+            attributeMap = node.getAttributes();
+
+            if (attributeMap == null) {
+                // Error: Attribute map hasn't been set yet
+                System.out.println("Attribute map hasn't been set yet!");
+                System.exit(1);
+            }
+        }
+
+        public String GetStringFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return attributeMap.getNamedItem(attributeName).getNodeValue();
+            }
+
+            return "";
+        }
+
+        public int GetIntegerFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return ParseInt(attributeMap.getNamedItem(attributeName).getNodeValue());
+            }
+
+            return 0;
+        }
+
+        public int GetIntegerMMFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return ParseIntMM(attributeMap.getNamedItem(attributeName).getNodeValue());
+            }
+
+            return 0;
+        }
+
+        public Double GetDoubleFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return ParseDouble(attributeMap.getNamedItem(attributeName).getNodeValue());
+            }
+
+            return 0.0;
+        }
+
+        public Boolean GetBooleanFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                if (attributeMap.getNamedItem(attributeName).getNodeValue().equals("Yes")) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public int ParseInt(String str) {
+            return Integer.parseInt(str);
+        }
+
+        // Parse Integer from String of format: "10mm"
+        public int ParseIntMM(String str) {
+            int strLen = str.length();
+
+            return Integer.parseInt(str.substring(0, strLen - 2));
+        }
+
+        public Double ParseDouble(String str) {
+            return Double.parseDouble(str);
+        }
+
+        public Boolean CheckIfAttributeExists(String attributeName) {
+            if (attributeMap.getNamedItem(attributeName) == null) {
+                //ErrorHandler(1);
+                //System.out.println(attributeName);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public void ErrorHandler(int errorCode) {
+            if (errorCode == 1) {
+                System.out.println("Attribute name doesn't exist!");
+            }
+            else {
+                System.out.println("Unknown error!");
+            }
+        }
+
+        @Override
+        public String toString() {
+            String output = "========TSElement=======\n";
+            output += "ID: " + id + "\n";
+            output += "GridX: " + gridX + "\n";
+            output += "GridY: " + gridY + "\n";
+            output += "GridColumnSpan: " + gridColumnSpan + "\n";
+            output += "GridRowSpan: " + gridRowSpan + "\n";
+            output += "WeightX: " + weightX + "\n";
+            output += "WeightY: " + weightY + "\n";
+            output += "Anchor: " + anchor + "\n";
+            output += "Fill: " + fill + "\n";
+            output += "ToolTipText: " + toolTipText + "\n";
+            output += "InsetTop: " + insetTop + "\n";
+            output += "InsetLeft: " + insetLeft + "\n";
+            output += "InsetBottom: " + insetBottom + "\n";
+            output += "InsetRight: " + insetRight + "\n";
+            output += "IpadX: " + ipadX + "\n";
+            output += "IpadY: " + ipadY + "\n";
+            output += "MinimumSizeHeight: " + minimumSizeHeight + "\n";
+            output += "MinimumSizeWidth: " + minimumSizeWidth + "\n";
+            output += "MaximumSizeHeight: " + maximumSizeHeight + "\n";
+            output += "MaximumSizeWidth: " + maximumSizeWidth + "\n";
+            output += "PreferredSizeHeight: " + preferredSizeHeight + "\n";
+            output += "PreferredSizeWidth: " + preferredSizeWidth + "\n";
+            output += "Foreground: " + foreground + "\n";
+            output += "Background: " + background + "\n";
+            output += "FontBold: " + fontBold + "\n";
+            output += "FontItalic: " + fontItalic + "\n";
+            output += "FontSize: " + fontSize + "\n";
+            output += "FontName: " + fontName + "\n";
+            output += "NextFocusableComponent: " + nextFocusableComponent + "\n";
+
+            return output;
+        }
+
+        public void outputTree(String preTabs) {}
+
+        public Element generateXmlElement() {
+            try {
+                DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+                // root elements
+                Document doc = docBuilder.newDocument();
+                Element elementPreGenerated = doc.createElement("PreGeneratedElement");
+
+                if (!CheckIfValuePointless(id))
+                    elementPreGenerated.setAttribute("id", id);
+                if (!CheckIfValuePointless(gridX))
+                    elementPreGenerated.setAttribute("gridX", String.valueOf(gridX));
+                if (!CheckIfValuePointless(gridY))
+                    elementPreGenerated.setAttribute("gridY", String.valueOf(gridY));
+                if (!CheckIfValuePointless(gridColumnSpan))
+                    elementPreGenerated.setAttribute("gridColumnSpan", String.valueOf(gridColumnSpan));
+                if (!CheckIfValuePointless(gridRowSpan))
+                    elementPreGenerated.setAttribute("gridRowSpan", String.valueOf(gridRowSpan));
+                if (!CheckIfValuePointless(weightX))
+                    elementPreGenerated.setAttribute("weightX", String.valueOf(weightX));
+                if (!CheckIfValuePointless(weightY))
+                    elementPreGenerated.setAttribute("weightY", String.valueOf(weightY));
+                if (!CheckIfValuePointless(anchor))
+                    elementPreGenerated.setAttribute("anchor", anchor);
+                if (!CheckIfValuePointless(fill))
+                    elementPreGenerated.setAttribute("fill", fill);
+                if (!CheckIfValuePointless(toolTipText))
+                    elementPreGenerated.setAttribute("toolTipText", toolTipText);
+                if (!CheckIfValuePointless(insetTop))
+                    elementPreGenerated.setAttribute("insetTop", String.valueOf(insetTop));
+                if (!CheckIfValuePointless(insetLeft))
+                    elementPreGenerated.setAttribute("insetLeft", String.valueOf(insetLeft));
+                if (!CheckIfValuePointless(insetBottom))
+                    elementPreGenerated.setAttribute("insetBottom", String.valueOf(insetBottom));
+                if (!CheckIfValuePointless(insetRight))
+                    elementPreGenerated.setAttribute("insetRight", String.valueOf(insetRight));
+                if (!CheckIfValuePointless(ipadX))
+                    elementPreGenerated.setAttribute("ipadX", String.valueOf(ipadX));
+                if (!CheckIfValuePointless(ipadY))
+                    elementPreGenerated.setAttribute("ipadY", String.valueOf(ipadY));
+                if (!CheckIfValuePointless(minimumSizeHeight))
+                    elementPreGenerated.setAttribute("minHeight", String.valueOf(minimumSizeHeight));
+                if (!CheckIfValuePointless(minimumSizeWidth))
+                    elementPreGenerated.setAttribute("maxHeight", String.valueOf(minimumSizeWidth));
+                if (!CheckIfValuePointless(maximumSizeHeight))
+                    elementPreGenerated.setAttribute("maxHeight", String.valueOf(maximumSizeHeight));
+                if (!CheckIfValuePointless(maximumSizeWidth))
+                    elementPreGenerated.setAttribute("maxWidth", String.valueOf(maximumSizeWidth));
+                if (!CheckIfValuePointless(preferredSizeHeight))
+                    elementPreGenerated.setAttribute("prefHeight", String.valueOf(preferredSizeHeight));
+                if (!CheckIfValuePointless(preferredSizeWidth))
+                    elementPreGenerated.setAttribute("prefWidth", String.valueOf(preferredSizeWidth));
+                if (!CheckIfValuePointless(foreground))
+                    elementPreGenerated.setAttribute("foreground", foreground);
+                if (!CheckIfValuePointless(background))
+                    elementPreGenerated.setAttribute("background", background);
+                if (!fontBold)
+                    elementPreGenerated.setAttribute("fontBold", String.valueOf(fontBold));
+                if (!fontItalic)
+                    elementPreGenerated.setAttribute("fontItalic", String.valueOf(fontItalic));
+                if (!CheckIfValuePointless(fontSize))
+                    elementPreGenerated.setAttribute("fontSize", String.valueOf(fontSize));
+                if (!CheckIfValuePointless(fontName))
+                    elementPreGenerated.setAttribute("fontName", fontName);
+                if (!CheckIfValuePointless(nextFocusableComponent))
+                    elementPreGenerated.setAttribute("nextFocusableComponent", nextFocusableComponent);
+
+                return elementPreGenerated;
+            }
+            catch (ParserConfigurationException pce) {
+                pce.printStackTrace();
+            }
+
+            return null;
+        }
+
+        public Element GetXmlElements() {
+            for (int i = 0; i < nodeChildren.size(); i++) {
+                xmlElement.appendChild(xmlElement.getOwnerDocument().importNode(nodeChildren.get(i).GetXmlElements(), true));
+            }
+
+            return xmlElement;
+        }
+
+        public HashMap<String, String> GetAttributes() {
+            HashMap<String, String> attributeHashMap = new HashMap<>();
+
+            if (!CheckIfValuePointless(id))
+                attributeHashMap.put("id", id);
+            if (!CheckIfValuePointless(gridX))
+                attributeHashMap.put("gridX", String.valueOf(gridX));
+            if (!CheckIfValuePointless(gridY))
+                attributeHashMap.put("gridY", String.valueOf(gridY));
+            if (!CheckIfValuePointless(gridColumnSpan))
+                attributeHashMap.put("gridColumnSpan", String.valueOf(gridColumnSpan));
+            if (!CheckIfValuePointless(gridRowSpan))
+                attributeHashMap.put("gridRowSpan", String.valueOf(gridRowSpan));
+            if (!CheckIfValuePointless(weightX))
+                attributeHashMap.put("weightX", String.valueOf(weightX));
+            if (!CheckIfValuePointless(weightY))
+                attributeHashMap.put("weightY", String.valueOf(weightY));
+            if (!CheckIfValuePointless(anchor))
+                attributeHashMap.put("anchor", anchor);
+            if (!CheckIfValuePointless(fill))
+                attributeHashMap.put("fill", fill);
+            if (!CheckIfValuePointless(toolTipText))
+                attributeHashMap.put("toolTipText", toolTipText);
+            if (!CheckIfValuePointless(insetTop))
+                attributeHashMap.put("insetTop", String.valueOf(insetTop));
+            if (!CheckIfValuePointless(insetLeft))
+                attributeHashMap.put("insetLeft", String.valueOf(insetLeft));
+            if (!CheckIfValuePointless(insetBottom))
+                attributeHashMap.put("insetBottom", String.valueOf(insetBottom));
+            if (!CheckIfValuePointless(insetRight))
+                attributeHashMap.put("insetRight", String.valueOf(insetRight));
+            if (!CheckIfValuePointless(ipadX))
+                attributeHashMap.put("ipadX", String.valueOf(ipadX));
+            if (!CheckIfValuePointless(ipadY))
+                attributeHashMap.put("ipadY", String.valueOf(ipadY));
+            if (!CheckIfValuePointless(minimumSizeHeight))
+                attributeHashMap.put("minHeight", String.valueOf(minimumSizeHeight));
+            if (!CheckIfValuePointless(minimumSizeWidth))
+                attributeHashMap.put("maxHeight", String.valueOf(minimumSizeWidth));
+            if (!CheckIfValuePointless(maximumSizeHeight))
+                attributeHashMap.put("maxHeight", String.valueOf(maximumSizeHeight));
+            if (!CheckIfValuePointless(maximumSizeWidth))
+                attributeHashMap.put("maxWidth", String.valueOf(maximumSizeWidth));
+            if (!CheckIfValuePointless(preferredSizeHeight))
+                attributeHashMap.put("prefHeight", String.valueOf(preferredSizeHeight));
+            if (!CheckIfValuePointless(preferredSizeWidth))
+                attributeHashMap.put("prefWidth", String.valueOf(preferredSizeWidth));
+            if (!CheckIfValuePointless(foreground))
+                attributeHashMap.put("foreground", foreground);
+            if (!CheckIfValuePointless(background))
+                attributeHashMap.put("background", background);
+            if (fontBold)
+                attributeHashMap.put("fontBold", String.valueOf(fontBold));
+            if (fontItalic)
+                attributeHashMap.put("fontItalic", String.valueOf(fontItalic));
+            if (!CheckIfValuePointless(fontSize))
+                attributeHashMap.put("fontSize", String.valueOf(fontSize));
+            if (!CheckIfValuePointless(fontName))
+                attributeHashMap.put("fontName", fontName);
+            if (!CheckIfValuePointless(nextFocusableComponent))
+                attributeHashMap.put("nextFocusableComponent", nextFocusableComponent);
+
+            return attributeHashMap;
+        }
+
+        public Boolean CheckIfValuePointless(String str) {
+            return str.isEmpty();
+        }
+
+        public Boolean CheckIfValuePointless(int num) {
+            return num == 0;
+        }
+
+        public Boolean CheckIfValuePointless(Double num) {
+            return num == 0.0;
+        }
+
+        public String makeFxmlText() {
+            String str =
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<?import " + componentClass.getCanonicalName() + "?>\n" +
+                    "<" + componentClass.getSimpleName() + " " +
+                    makeAttributeText() + "/>\n";
+
+
+
+            /*
+             * <?xml version="1.0" encoding="UTF-8"?> //NOI18N
+             *
+             * <?import a.b.C?>
+             *
+             * <C/>
+             */
+
+            return str;
+        }
+
+        public String makeAttributeText() {
+            // TODO Attributes
+            return "";
+        }
+
+        //public int[] SetGridPositionsAndReturnSize() { TODO Fix child grid positions and return number of columns and rows }
+    }
+
+    public static class TSPanel extends TextSystemElement {
+        private int numOfRows;
+        private int numOfColumns;
+
+        public TSPanel(Node node) {
+            super(node);
+
+            SetChildren(node);
+
+
+            xmlElement = generateXmlElement();
+            componentClass = javafx.scene.layout.GridPane.class;
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "========TSPanel=======\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public void outputTree(String preTabs) {
+            if (preTabs.length() == 0) {
+                System.out.println("TSElement tree:");
+            }
+
+            System.out.println(preTabs + "GridPane: " + id);
+            for (int i = 0; i < nodeChildren.size(); i++) {
+                nodeChildren.get(i).outputTree("\t" + preTabs);
+            }
+        }
+
+        public Element generateXmlElement() {
+            Element elementGridPane = super.generateXmlElement();
+            elementGridPane.getOwnerDocument().renameNode(elementGridPane, elementGridPane.getNamespaceURI(), "GridPane");
+
+            return elementGridPane;
+        }
+
+        public HashMap<String, String> GetAttributes() {
+            HashMap<String, String> attributeHashMap = super.GetAttributes();
+
+            attributeHashMap.put("numOfRows", String.valueOf(numOfRows));
+            attributeHashMap.put("numOfColumns", String.valueOf(numOfColumns));
+
+            return attributeHashMap;
+        }
+    }
+
+    public static class TSTextFieldControl extends TextSystemElement {
+        private int maxLen;
+        private String alignment;
+        private Boolean editable;
+
+        public TSTextFieldControl(Node node) {
+            super(node);
+
+            maxLen = GetIntegerFromAttribute("maxLen");
+            alignment = GetStringFromAttribute("alignment");
+            editable = GetBooleanFromAttribute("ed");
+
+            SetChildren(node);
+
+            xmlElement = generateXmlElement();
+            componentClass = javafx.scene.control.TextField.class;
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "========TSTextFieldControl=======\n";
+            output += "MaxLen: " + maxLen + "\n";
+            output += "Alignment: " + alignment + "\n";
+            output += "Editable: " + editable + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public void outputTree(String preTabs) {
+            if (preTabs.length() == 0) {
+                System.out.println("TSElement tree:");
+            }
+
+            System.out.println(preTabs + "TextFieldControl: " + id);
+            for (int i = 0; i < nodeChildren.size(); i++) {
+                nodeChildren.get(i).outputTree("\t" + preTabs);
+            }
+        }
+
+        public Element generateXmlElement() {
+            Element elementTextField = super.generateXmlElement();
+            elementTextField.getOwnerDocument().renameNode(elementTextField, elementTextField.getNamespaceURI(), "TextField");
+
+            if (!CheckIfValuePointless(maxLen))
+                elementTextField.setAttribute("maxLen", String.valueOf(maxLen));
+            if (!CheckIfValuePointless(alignment))
+                elementTextField.setAttribute("alignment", String.valueOf(alignment));
+            if (editable)
+                elementTextField.setAttribute("alignment", String.valueOf(editable));
+
+
+            return elementTextField;
+        }
+
+        public HashMap<String, String> GetAttributes() {
+            HashMap<String, String> attributeHashMap = super.GetAttributes();
+
+            if (!CheckIfValuePointless(maxLen))
+                attributeHashMap.put("maxLen", String.valueOf(maxLen));
+            if (!CheckIfValuePointless(alignment))
+                attributeHashMap.put("alignment", String.valueOf(alignment));
+            if (editable)
+                attributeHashMap.put("editable", String.valueOf(editable));
+
+            return attributeHashMap;
+        }
+    }
+
+    public static class TSButtonControl extends TextSystemElement {
+        private String text;
+        private String mnemonic;
+
+        public TSButtonControl(Node node) {
+            super(node);
+
+            text = GetStringFromAttribute("text");
+            mnemonic = GetStringFromAttribute("mnemonic");
+
+            SetChildren(node);
+
+            xmlElement = generateXmlElement();
+            componentClass = javafx.scene.control.Button.class;
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "========TSTextFieldControl=======\n";
+            output += "Text: " + text + "\n";
+            output += "Mnemonic: " + mnemonic + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public void outputTree(String preTabs) {
+            if (preTabs.length() == 0) {
+                System.out.println("TSElement tree:");
+            }
+
+            System.out.println(preTabs + "ButtonControl: " + id);
+            for (int i = 0; i < nodeChildren.size(); i++) {
+                nodeChildren.get(i).outputTree("\t" + preTabs);
+            }
+        }
+
+        public Element generateXmlElement() {
+            Element elementButton = super.generateXmlElement();
+            elementButton.getOwnerDocument().renameNode(elementButton, elementButton.getNamespaceURI(), "Button");
+
+            if (!CheckIfValuePointless(text))
+                elementButton.setAttribute("Text", text);
+            if (!CheckIfValuePointless(mnemonic))
+                elementButton.setAttribute("mnemonic", mnemonic);
+
+            return elementButton;
+        }
+
+        public HashMap<String, String> GetAttributes() {
+            HashMap<String, String> attributeHashMap = super.GetAttributes();
+
+            if (!CheckIfValuePointless(text))
+                attributeHashMap.put("Text", text);
+            if (!CheckIfValuePointless(mnemonic))
+                attributeHashMap.put("mnemonic", mnemonic);
+
+            return attributeHashMap;
+        }
+
+        public static class TSComboboxControl extends TextSystemElement {
+            private int maxLen;
+            private Boolean editable;
+
+            public TSComboboxControl(Node node) {
+                super(node);
+
+                maxLen = GetIntegerFromAttribute("maxLen");
+                editable = GetBooleanFromAttribute("ed");
+
+                SetChildren(node);
+
+                xmlElement = generateXmlElement();
+                componentClass = javafx.scene.control.ComboBox.class;
+            }
+
+            public String toString() {
+                String output = super.toString();
+
+                output += "========TSComboboxControl=======\n";
+                output += "MaxLen: " + maxLen + "\n";
+                output += "Editable: " + editable + "\n";
+                output += "=========================\n";
+
+                return output;
+            }
+
+            public void outputTree(String preTabs) {
+                if (preTabs.length() == 0) {
+                    System.out.println("TSElement tree:");
+                }
+
+                System.out.println(preTabs + "TSComboboxControl: " + id);
+                for (int i = 0; i < nodeChildren.size(); i++) {
+                    nodeChildren.get(i).outputTree("\t" + preTabs);
+                }
+            }
+
+            public Element generateXmlElement() {
+                Element elementTextField = super.generateXmlElement();
+                elementTextField.getOwnerDocument().renameNode(elementTextField, elementTextField.getNamespaceURI(), "Combobox");
+
+                if (!CheckIfValuePointless(maxLen))
+                    elementTextField.setAttribute("maxLen", String.valueOf(maxLen));
+                if (editable)
+                    elementTextField.setAttribute("editable", String.valueOf(editable));
+
+                return elementTextField;
+            }
+
+            public HashMap<String, String> GetAttributes() {
+                HashMap<String, String> attributeHashMap = super.GetAttributes();
+
+                if (!CheckIfValuePointless(maxLen))
+                    attributeHashMap.put("maxLen", String.valueOf(maxLen));
+                if (editable)
+                    attributeHashMap.put("editable", String.valueOf(editable));
+
+                return attributeHashMap;
+            }
+        }
+
+        public static class TSChecklistControl extends TextSystemElement {
+            private Boolean multipleSelection;
+
+            public TSChecklistControl(Node node) {
+                super(node);
+
+                multipleSelection = GetBooleanFromAttribute("multipleSelection");
+
+                SetChildren(node);
+
+                xmlElement = generateXmlElement();
+                componentClass = null; //TODO Implement ChecklistControl in JavaFX
+            }
+
+            public String toString() {
+                String output = super.toString();
+
+                output += "========TSChecklistControl=======\n";
+                output += "MultipleSelection: " + multipleSelection + "\n";
+                output += "=========================\n";
+
+                return output;
+            }
+
+            public void outputTree(String preTabs) {
+                if (preTabs.length() == 0) {
+                    System.out.println("TSElement tree:");
+                }
+
+                System.out.println(preTabs + "TSComboboxControl: " + id);
+                for (int i = 0; i < nodeChildren.size(); i++) {
+                    nodeChildren.get(i).outputTree("\t" + preTabs);
+                }
+            }
+
+            public Element generateXmlElement() {
+                Element elementTextField = super.generateXmlElement();
+                elementTextField.getOwnerDocument().renameNode(elementTextField, elementTextField.getNamespaceURI(), "Checklist");
+
+                if (multipleSelection)
+                    elementTextField.setAttribute("multipleSelection", String.valueOf(multipleSelection));
+
+                return elementTextField;
+            }
+
+            public HashMap<String, String> GetAttributes() {
+                HashMap<String, String> attributeHashMap = super.GetAttributes();
+
+                if (multipleSelection)
+                    attributeHashMap.put("multipleSelection", String.valueOf(multipleSelection));
+
+                return attributeHashMap;
+            }
+        }
+
+        public static class TSDateFieldControl extends TextSystemElement {
+            private String format;
+            private Boolean editable;
+
+            public TSDateFieldControl(Node node) {
+                super(node);
+
+                format = GetStringFromAttribute("format");
+                editable = GetBooleanFromAttribute("ed");
+
+                SetChildren(node);
+
+                xmlElement = generateXmlElement();
+                componentClass = null; //TODO Implement DateFieldControl in JavaFX
+            }
+        }
+
+        //public static class TSCheckboxControl extends TextSystemElement {}
+
+        //public static class TSRadioButtonControl extends TextSystemElement {}
+
+        //public static class TSNumericTextFieldControl extends TextSystemElement {}
+
+        //public static class TSSpinnerControl extends TextSystemElement {}
+
+        //public static class TSTextAreaControl extends TextSystemElement {}
+
+        @Override
+        public String makeAttributeText() {
+            return super.makeAttributeText() + "text=\"" + this.text.toString() + "\"";
+        }
+    }
+}

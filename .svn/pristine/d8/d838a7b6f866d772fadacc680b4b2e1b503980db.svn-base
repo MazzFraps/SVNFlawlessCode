@@ -1,0 +1,447 @@
+package dialogbuilder;
+
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+public class TextSystemElements {
+
+    public static class TextSystemElement {
+        public String id;
+
+        public int gridX;
+        public int gridY;
+
+        // gridWidth
+        public int gridColumnSpan;
+        // gridHeight
+        public int gridRowSpan;
+
+        // ???
+        public double weightX = 0.0; //
+        public double weightY = 0.0; //
+
+        public String anchor;
+        public String fill;
+
+        // Mouse over text
+        public String toolTipText;
+
+        public int insetTop ;
+        public int insetLeft ;
+        public int insetBottom ;
+        public int insetRight;
+
+        public int ipadX ;
+        public int ipadY ;
+
+        public int minimumSizeHeight;
+        public int minimumSizeWidth;
+
+        public int maximumSizeHeight;
+        public int maximumSizeWidth;
+
+        public int preferredSizeHeight;
+        public int preferredSizeWidth;
+
+        public String foreground;
+        public String background;
+
+        public Boolean editable;
+        public Boolean multipleSelection;
+        public String nextFocusableComponent;
+
+        public NamedNodeMap attributeMap = null;
+
+        public TextSystemElement parent = null;
+
+        public List<TextSystemElement> nodeChildren = new ArrayList<>();
+
+        public TextSystemElement(Node node) {
+            SetAttributeMap(node);
+
+            id = GetStringFromAttribute("id");
+            //TODO temporary name
+            if (id.length() == 0) {
+                RandomString rnd = new RandomString(10);
+                id = rnd.nextString();
+            }
+
+            gridX = GetIntegerFromAttribute("gridX");
+            gridY = GetIntegerFromAttribute("gridY");
+
+            gridColumnSpan = GetIntegerFromAttribute("gridWidth");
+            gridRowSpan = GetIntegerFromAttribute("gridHeight");
+
+            weightX = GetDoubleFromAttribute("weightX");
+            weightY = GetDoubleFromAttribute("weightY");
+
+            anchor = GetStringFromAttribute("anchor");
+            fill = GetStringFromAttribute("fill");
+            toolTipText = GetStringFromAttribute("toolTipText");
+
+            insetTop = GetIntegerMMFromAttribute("insetTop");
+            insetLeft = GetIntegerMMFromAttribute("insetLeft");
+            insetBottom = GetIntegerMMFromAttribute("insetBottom");
+            insetRight = GetIntegerMMFromAttribute("insetRight");
+
+            ipadX = GetIntegerMMFromAttribute("ipadX");
+            ipadY = GetIntegerMMFromAttribute("ipadY");
+
+            minimumSizeHeight = GetIntegerMMFromAttribute("minimumSizeHeight");
+            minimumSizeWidth = GetIntegerMMFromAttribute("minimumSizeWidth");
+            maximumSizeHeight = GetIntegerMMFromAttribute("maximumSizeHeight");
+            maximumSizeWidth = GetIntegerMMFromAttribute("maximumSizeWidth");
+            preferredSizeHeight = GetIntegerMMFromAttribute("preferredSizeHeight");
+            preferredSizeWidth = GetIntegerMMFromAttribute("preferredSizeWidth");
+
+            foreground = GetStringFromAttribute("foreground");
+        }
+
+        public void SetChildren(Node node) {
+            NodeList childList = node.getChildNodes();
+            for (int i = 0; i < childList.getLength(); i++) {
+                Node childNode = childList.item(i);
+
+                if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+                    if (childNode.getNodeName().equals("Panel")) {
+                        TSGridPane childTS = new TSGridPane(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("TextFieldControl")) {
+                        TSTextFieldControl childTS = new TSTextFieldControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else if (childNode.getNodeName().equals("ButtonControl")) {
+                        TSButtonControl childTS = new TSButtonControl(childNode);
+                        childTS.parent = this;
+
+                        nodeChildren.add(childTS);
+                    }
+                    else {
+                        //TODO other TSElements
+                    }
+                }
+            }
+        }
+
+        public void SetAttributeMap(Node node) {
+            attributeMap = node.getAttributes();
+
+            if (attributeMap == null) {
+                // Error: Attribute map hasn't been set yet
+                System.out.println("Attribute map hasn't been set yet!");
+                System.exit(1);
+            }
+        }
+
+        public String GetStringFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return attributeMap.getNamedItem(attributeName).getNodeValue();
+            }
+
+            return "";
+        }
+
+        public int GetIntegerFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return ParseInt(attributeMap.getNamedItem(attributeName).getNodeValue());
+            }
+
+            return 0;
+        }
+
+        public int GetIntegerMMFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return ParseIntMM(attributeMap.getNamedItem(attributeName).getNodeValue());
+            }
+
+            return 0;
+        }
+
+        public Double GetDoubleFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                return ParseDouble(attributeMap.getNamedItem(attributeName).getNodeValue());
+            }
+
+            return 0.0;
+        }
+
+        public Boolean GetBooleanFromAttribute(String attributeName) {
+            if (CheckIfAttributeExists(attributeName)) {
+                if (attributeMap.getNamedItem(attributeName).getNodeValue().equals("Yes")) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public int ParseInt(String str) {
+            return Integer.parseInt(str);
+        }
+
+        // Parse Integer from String of format: "10mm"
+        public int ParseIntMM(String str) {
+            int strLen = str.length();
+
+            return Integer.parseInt(str.substring(0, strLen - 2));
+        }
+
+        public Double ParseDouble(String str) {
+            return Double.parseDouble(str);
+        }
+
+        public Boolean CheckIfAttributeExists(String attributeName) {
+            if (attributeMap.getNamedItem(attributeName) == null) {
+                ErrorHandler(1);
+                System.out.println(attributeName);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /*
+        public void CheckForOtherAttributes() {
+            List<String> attributeNames = Arrays.asList(
+                    "id", "gridX", "gridY", "gridWidth", "gridHeight", "weightX", "weightY", "anchor", "fill",
+                    "toolTipText", "insetTop", "insetLeft", "insetBottom", "insetRight", "ipadX", "ipadY",
+                    "minimumSizeHeight", "minimumSizeWidth", "maximumSizeHeight", "maximumSizeWidth",
+                    "preferredSizeHeight", "preferredSizeWidth", "foreground", "font-bold", "font-italic", "font-size",
+                    "font-name"
+            );
+
+            for (int i = 0; i < attributeMap.getLength(); i++) {
+                Boolean attributeFound = false;
+
+                for (int j = 0; j < attributeNames.size(); j++) {
+                    if (attributeMap.item(i).getNodeName().equals(attributeNames.get(j))) {
+                        attributeFound = true;
+
+                        break;
+                    }
+                }
+
+                if (!attributeFound) {
+                    System.out.println("Found unknown attribute: " + attributeMap.item(i).getNodeName());
+                }
+            }
+        }
+        */
+        public void ErrorHandler(int errorCode) {
+            if (errorCode == 1) {
+                System.out.println("Attribute name doesn't exist!");
+            }
+            else {
+                System.out.println("Unknown error!");
+            }
+        }
+
+        @Override
+        public String toString() {
+            String output = "========TSElement=======\n";
+            output += "ID: " + id + "\n";
+            output += "GridX: " + gridX + "\n";
+            output += "GridY: " + gridY + "\n";
+            output += "GridColumnSpan: " + gridColumnSpan + "\n";
+            output += "GridRowSpan: " + gridRowSpan + "\n";
+            output += "WeightX: " + weightX + "\n";
+            output += "WeightY: " + weightY + "\n";
+            output += "Anchor: " + anchor + "\n";
+            output += "Fill: " + fill + "\n";
+            output += "ToolTipText: " + toolTipText + "\n";
+            output += "InsetTop: " + insetTop + "\n";
+            output += "InsetLeft: " + insetLeft + "\n";
+            output += "InsetBottom: " + insetBottom + "\n";
+            output += "InsetRight: " + insetRight + "\n";
+            output += "IpadX: " + ipadX + "\n";
+            output += "IpadY: " + ipadY + "\n";
+            output += "MinimumSizeHeight: " + minimumSizeHeight + "\n";
+            output += "MinimumSizeWidth: " + minimumSizeWidth + "\n";
+            output += "MaximumSizeHeight: " + maximumSizeHeight + "\n";
+            output += "MaximumSizeWidth: " + maximumSizeWidth + "\n";
+            output += "PreferredSizeHeight: " + preferredSizeHeight + "\n";
+            output += "PreferredSizeWidth: " + preferredSizeWidth + "\n";
+            output += "Foreground: " + foreground + "\n";
+            output += "Background: " + background + "\n";
+            output += "Editable: " + editable + "\n";
+            output += "MultipleSelection: " + multipleSelection + "\n";
+            output += "NextFocusableComponent: " + nextFocusableComponent + "\n";
+
+            return output;
+        }
+
+        public void outputTree(String preTabs) {}
+    }
+
+    public static class TSGridPane extends TextSystemElement {
+        // font-bold
+        private Boolean fontBold = false;
+        // font-italic
+        private Boolean fontItalic = false;
+        // font-size, default = ???
+        private int fontSize = 12;
+        // font-name, default = ???
+        private String fontName;
+
+        public TSGridPane(Node node) {
+            super(node);
+
+            fontBold = GetBooleanFromAttribute("font-bold");
+            fontItalic = GetBooleanFromAttribute("font-italic");
+            fontSize = GetIntegerFromAttribute("font-size");
+            fontName = GetStringFromAttribute("font-name");
+
+            System.out.println(this.toString());
+            SetChildren(node);
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "========TSGridPane=======\n";
+            output += "FontBold: " + fontBold + "\n";
+            output += "FontItalic: " + fontItalic + "\n";
+            output += "FontSize: " + fontSize + "\n";
+            output += "FontName: " + fontName + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+
+        public void outputTree(String preTabs) {
+            if (preTabs.length() == 0) {
+                System.out.println("TSElement tree:");
+            }
+
+            System.out.println(preTabs + id);
+            for (int i = 0; i < nodeChildren.size(); i++) {
+                nodeChildren.get(i).outputTree("\t" + preTabs);
+            }
+        }
+    }
+
+    public static class TSTextFieldControl extends TextSystemElement {
+        private int maxLen;
+        private String alignment;
+        // font-bold
+        private Boolean fontBold = false;
+        // font-italic
+        private Boolean fontItalic = false;
+        // font-size, default = ???
+        private int fontSize = 12;
+        // font-name, default = ???
+        private String fontName;
+
+        public TSTextFieldControl(Node node) {
+            super(node);
+
+            maxLen = GetIntegerFromAttribute("maxLen");
+            alignment = GetStringFromAttribute("alignment");
+
+            fontBold = GetBooleanFromAttribute("font-bold");
+            fontItalic = GetBooleanFromAttribute("font-italic");
+            fontSize = GetIntegerFromAttribute("font-size");
+            fontName = GetStringFromAttribute("font-name");
+
+            System.out.println(this.toString());
+            SetChildren(node);
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "========TSTextFieldControl=======\n";
+            output += "MaxLen: " + maxLen + "\n";
+            output += "Alignment: " + alignment + "\n";
+            output += "FontBold: " + fontBold + "\n";
+            output += "FontItalic: " + fontItalic + "\n";
+            output += "FontSize: " + fontSize + "\n";
+            output += "FontName: " + fontName + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+    }
+
+    public static class TSButtonControl extends TextSystemElement {
+        private String text;
+        private String mnemonic;
+        // font-bold
+        private Boolean fontBold = false;
+        // font-italic
+        private Boolean fontItalic = false;
+        // font-size, default = ???
+        private int fontSize = 12;
+        // font-name, default = ???
+        private String fontName;
+
+        public TSButtonControl(Node node) {
+            super(node);
+
+            text = GetStringFromAttribute("text");
+            mnemonic = GetStringFromAttribute("mnemonic");
+
+            fontBold = GetBooleanFromAttribute("font-bold");
+            fontItalic = GetBooleanFromAttribute("font-italic");
+            fontSize = GetIntegerFromAttribute("font-size");
+            fontName = GetStringFromAttribute("font-name");
+
+            System.out.println(this.toString());
+            SetChildren(node);
+        }
+
+        public String toString() {
+            String output = super.toString();
+
+            output += "========TSTextFieldControl=======\n";
+            output += "Text: " + text + "\n";
+            output += "Mnemonic: " + mnemonic + "\n";
+            output += "FontBold: " + fontBold + "\n";
+            output += "FontItalic: " + fontItalic + "\n";
+            output += "FontSize: " + fontSize + "\n";
+            output += "FontName: " + fontName + "\n";
+            output += "=========================\n";
+
+            return output;
+        }
+    }
+
+    public static class RandomString {
+        private  final char[] symbols;
+
+        {
+            StringBuilder tmp = new StringBuilder();
+            for (char ch = '0'; ch <= '9'; ++ch)
+                tmp.append(ch);
+            for (char ch = 'a'; ch <= 'z'; ++ch)
+                tmp.append(ch);
+            symbols = tmp.toString().toCharArray();
+        }
+
+        private final Random random = new Random();
+
+        private final char[] buf;
+
+        public RandomString(int length) {
+            if (length < 1)
+                throw new IllegalArgumentException("length < 1: " + length);
+            buf = new char[length];
+        }
+
+        public String nextString() {
+            for (int idx = 0; idx < buf.length; ++idx)
+                buf[idx] = symbols[random.nextInt(symbols.length)];
+            return new String(buf);
+        }
+    }
+}

@@ -1,0 +1,191 @@
+package dialogbuilder;
+
+import com.oracle.javafx.scenebuilder.app.*;
+import com.oracle.javafx.scenebuilder.kit.editor.panel.inspector.InspectorPanelController;
+import com.sun.javafx.application.ParametersImpl;
+import javafx.application.Application;
+import javafx.scene.control.Accordion;
+import javafx.scene.control.Button;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.util.*;
+
+public class DialogBuilder {
+    private SceneBuilderApp app;
+    private DocumentWindowController dwc;
+    private DialogBuilderPanel[] leftPanels;
+    private DialogBuilderPanel[] rightPanels;
+    private DocumentStructure[] documentStructure;
+    private InspectorStructure[] inspectorStructure;
+
+    public enum DialogBuilderPanel {
+        LIBRARY_PANEL,
+        DOCUMENT_PANEL,
+        INSPECTOR_PANEL
+    }
+
+    public enum DocumentStructure {
+        HIERARCHY,
+        CONTROLLER
+    }
+
+    public enum InspectorStructure {
+        PROPERTIES,
+        LAYOUT,
+        CODE
+    }
+
+    public DialogBuilder() {
+    }
+
+    public void start(Stage stage, Application.Parameters params, Set<String> filter) {
+        // Start the SceneBuilder
+        app = new SceneBuilderApp(filter);
+        ParametersImpl.registerParameters(app, params);
+        try {
+            app.init();
+            app.start(stage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        dwc = app.getDocumentWindowControllers().get(0);
+        //dwc.getMenuBarController().setDebugMenuVisible(true);
+
+        // Set example fxml in editor
+        try {
+            dwc.getEditorController().setFxmlText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<?import javafx.scene.control.Button?>\n<?import javafx.scene.layout.ColumnConstraints?>\n<?import javafx.scene.layout.GridPane?>\n<?import javafx.scene.layout.HBox?>\n<?import javafx.scene.layout.RowConstraints?>\n\n<GridPane id=\"gridpane\" alignment=\"center\" hgap=\"10\" vgap=\"10\" xmlns=\"http://javafx.com/javafx/8.0.112-ea\" xmlns:fx=\"http://javafx.com/fxml/1\" fx:controller=\"sample.Controller\">\n   <columnConstraints>\n      <ColumnConstraints />\n   </columnConstraints>\n   <rowConstraints>\n      <RowConstraints />\n   </rowConstraints>\n   <children>\n      <HBox fx:id=\"hbox\" prefHeight=\"100.0\" prefWidth=\"200.0\">\n         <children>\n            <Button mnemonicParsing=\"false\" text=\"Button\" />\n         </children></HBox>\n   </children>\n</GridPane>");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // remove Library, Document and Inspector panels
+        dwc.getLibraryDocumentSplitPane().getItems().removeAll(dwc.getLibraryPanel(), dwc.getDocumentPanel());
+        dwc.getInspectorSplitPane().getItems().removeAll(dwc.getInspectorPanel());
+
+        updateLeftPanels();
+        updateRightPanels();
+        updateDocumentPanelStructure();
+        updateInspectorPanelStructure();
+    }
+
+    public void setLeftPanels(DialogBuilderPanel... leftPanels) {
+        this.leftPanels = leftPanels;
+        updateLeftPanels();
+    }
+
+    public void setRightPanels(DialogBuilderPanel... rightPanels) {
+        this.rightPanels = rightPanels;
+        updateRightPanels();
+    }
+
+    public void setDocumentPanelStructure(DocumentStructure... documentStructure) {
+        this.documentStructure = documentStructure;
+        updateDocumentPanelStructure();
+    }
+
+    public void setInspectorPanelStructure(InspectorStructure... inspectorStructure) {
+        this.inspectorStructure = inspectorStructure;
+        updateInspectorPanelStructure();
+    }
+
+    private void updateLeftPanels() {
+        if (dwc == null) return;
+
+        if (leftPanels == null || leftPanels.length <= 0) {
+            dwc.getLeftSplitController().hideTarget();
+            return;
+        }
+
+        dwc.getLeftSplitController().showTarget();
+
+        for (DialogBuilderPanel panel : leftPanels) {
+            switch (panel) {
+                case LIBRARY_PANEL:
+                    dwc.getLibraryDocumentSplitPane().getItems().add(dwc.getLibraryPanel());
+                    break;
+                case DOCUMENT_PANEL:
+                    dwc.getLibraryDocumentSplitPane().getItems().add(dwc.getDocumentPanel());
+                    break;
+                case INSPECTOR_PANEL:
+                    dwc.getLibraryDocumentSplitPane().getItems().add(dwc.getInspectorPanel());
+            }
+        }
+    }
+
+    private void updateRightPanels() {
+        if (dwc == null) return;
+
+        if (rightPanels == null || rightPanels.length <= 0) {
+            dwc.getRightSplitController().hideTarget();
+            return;
+        }
+
+        dwc.getRightSplitController().showTarget();
+
+        for (DialogBuilderPanel panel : rightPanels) {
+            switch (panel) {
+                case LIBRARY_PANEL:
+                    dwc.getInspectorSplitPane().getItems().add(dwc.getLibraryPanel());
+                    break;
+                case DOCUMENT_PANEL:
+                    dwc.getInspectorSplitPane().getItems().add(dwc.getDocumentPanel());
+                    break;
+                case INSPECTOR_PANEL:
+                    dwc.getInspectorSplitPane().getItems().add(dwc.getInspectorPanel());
+            }
+        }
+    }
+
+    private void updateDocumentPanelStructure() {
+        if (dwc == null) return;
+
+        if (documentStructure == null || documentStructure.length <= 0) {
+            return;
+        }
+
+        dwc.getDocumentAccordion().getPanes().removeAll(dwc.getDocumentAccordion().getPanes());
+
+        for (DocumentStructure ds : documentStructure) {
+            switch (ds) {
+                case HIERARCHY:
+                    dwc.getDocumentAccordion().getPanes().add(dwc.getHierarchy());
+                    break;
+                case CONTROLLER:
+                    dwc.getDocumentAccordion().getPanes().add(dwc.getInfo());
+            }
+        }
+
+        dwc.getDocumentAccordion().getPanes().get(0).setExpanded(true);
+    }
+
+    private void updateInspectorPanelStructure() {
+        if (dwc == null) return;
+
+        if (inspectorStructure == null || inspectorStructure.length <= 0) {
+            return;
+        }
+
+        InspectorPanelController controller = dwc.getInspectorPanelController();
+        Accordion accordion = controller.getAccordion();
+        accordion.getPanes().removeAll(accordion.getPanes());
+
+        for (InspectorStructure is : inspectorStructure) {
+            switch (is) {
+                case PROPERTIES:
+                    accordion.getPanes().add(controller.getPropertiesTitledPane());
+                    break;
+                case LAYOUT:
+                    accordion.getPanes().add(controller.getLayoutTitledPane());
+                    break;
+                case CODE:
+                    accordion.getPanes().add(controller.getCodeTitledPane());
+            }
+        }
+
+        accordion.getPanes().get(0).setExpanded(true);
+    }
+}

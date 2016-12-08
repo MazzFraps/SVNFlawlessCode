@@ -1,0 +1,15 @@
+syntax: glob
+.gradle/*
+.nb-gradle/*
+build/*
+.idea/*
+modules/dialogbuilder/src/main/main.iml
+.classpath
+.project
+.settings
+*.class
+bin
+.DS_Store
+target
+.idea
+.hgignore

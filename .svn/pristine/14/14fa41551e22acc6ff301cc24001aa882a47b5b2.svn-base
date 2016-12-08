@@ -1,0 +1,50 @@
+package dialogbuilder;
+
+import com.oracle.javafx.scenebuilder.kit.editor.EditorController;
+import com.oracle.javafx.scenebuilder.kit.editor.job.InsertAsSubComponentJob;
+import com.oracle.javafx.scenebuilder.kit.editor.job.Job;
+import com.oracle.javafx.scenebuilder.kit.editor.job.SetDocumentRootJob;
+import com.oracle.javafx.scenebuilder.kit.fxom.FXOMDocument;
+import com.oracle.javafx.scenebuilder.kit.fxom.FXOMObject;
+
+import java.io.IOException;
+
+public class XmlTreeToFxom {
+    private final EditorController editorController;
+    //Classloader classLoader;
+    public XmlTreeToFxom(EditorController editorController) {
+        this.editorController = editorController;
+    }
+
+    public void createFXOM(TextSystemElements.TextSystemElement xmlRoot) {
+        createElements(xmlRoot, null);
+    }
+
+    private void createElements(TextSystemElements.TextSystemElement element, FXOMObject target) {
+        FXOMObject root = createElement(element.makeFxmlText(), target);
+
+        for (int i = 0; i < element.nodeChildren.size(); i++) {
+            createElements(element.nodeChildren.get(i), root);
+        }
+    }
+
+    public FXOMObject createElement(String fxmlText, FXOMObject target) {
+        try {
+            final Job job;
+            final FXOMDocument newItemDocument = new FXOMDocument(fxmlText, null, ClassLoader.getSystemClassLoader(), null);
+            final FXOMObject newObject = newItemDocument.getFxomRoot();
+//         this.propertyMetadata.setValueObject(fxomInstance, oldValue);
+
+            if (target == null) { // Empty document
+                job = new SetDocumentRootJob(newObject, true, "", editorController);
+            } else {
+                job = new InsertAsSubComponentJob(newObject, target, -1, editorController);
+            }
+            editorController.getJobManager().push(job);
+            return newObject;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
